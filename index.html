@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UOC Inscription</title>
+
+<style>
+
+body {
+  margin:0;
+  font-family: Arial;
+  background: url("https://images.unsplash.com/photo-1505751172876-fa1923c5c528") no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* overlay */
+.overlay {
+  background: rgba(0,0,0,0.6);
+  min-height:100vh;
+  padding:20px;
+  color:white;
+}
+
+/* pages */
+.page { display:none; }
+
+#page1 {
+  display:block;
+  text-align:center;
+  margin-top:100px;
+}
+
+#page2 {
+  background:white;
+  color:black;
+  max-width:750px;
+  margin:auto;
+  padding:20px;
+  border-radius:10px;
+}
+
+#page3 {
+  text-align:center;
+  margin-top:150px;
+}
+
+/* inputs */
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+}
+
+/* buttons */
+button {
+  padding:12px;
+  width:200px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.blue { background:#1e90ff; color:white; }
+.red { background:red; color:white; }
+.green { background:green; color:white; }
+
+/* about */
+.about {
+  margin-top:20px;
+  color:white;
+}
+
+/* admin caché */
+#adminBtn {
+  position:fixed;
+  bottom:10px;
+  right:10px;
+  opacity:0.05;
+  font-size:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+<!-- PAGE 1 -->
+<div id="page1" class="page">
+
+<h1>Université Orthodoxe au Congo (UOC)</h1>
+
+<p>Inscription en ligne</p>
+
+<button class="blue" onclick="openForm()">S’inscrire</button>
+
+<div class="about">
+<h3>À propos de l’UOC</h3>
+<p>Des encadreurs dignes de leur nom, une formation de qualité et un avenir assuré.</p>
+</div>
+
+</div>
+
+<!-- PAGE 2 -->
+<div id="page2" class="page">
+
+<h2 style="text-align:center;">Formulaire d’inscription</h2>
+
+<form id="form">
+
+<input id="nom" placeholder="Nom">
+<input id="postnom" placeholder="Postnom">
+<input id="prenom" placeholder="Prénom">
+<input id="telephone" placeholder="Téléphone">
+<input id="email" placeholder="Email">
+<input id="adresse" placeholder="Adresse">
+
+<select id="filiere">
+<option>Informatique</option>
+<option>Droit</option>
+<option>Médecine</option>
+<option>Économie</option>
+</select>
+
+<select id="niveau">
+<option>Licence 1</option>
+<option>Licence 2</option>
+<option>Licence 3</option>
+</select>
+
+<button type="button" class="blue" onclick="inscrire()">S’inscrire</button>
+
+</form>
+
+</div>
+
+<!-- PAGE 3 -->
+<div id="page3" class="page">
+
+<h1>🎉 Félicitations !</h1>
+<p>Vous êtes inscrit avec succès.</p>
+<p>Veuillez passer au secrétariat pour votre reçu.</p>
+
+<button class="red" onclick="backHome()">S’inscrire</button>
+
+</div>
+
+<!-- ADMIN SECRET -->
+<button id="adminBtn" onclick="openAdmin()">admin</button>
+
+<div id="adminPage" style="display:none; background:white; color:black; padding:20px;">
+<h2>Liste étudiants UOC</h2>
+<div id="liste"></div>
+<button onclick="closeAdmin()">Retour</button>
+</div>
+
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA8HhfraFtYLjxnD67KQrpm6rtSaSjA-o8",
+  authDomain: "uoc-inscription.firebaseapp.com",
+  projectId: "uoc-inscription",
+  storageBucket: "uoc-inscription.appspot.com",
+  messagingSenderId: "803501115688",
+  appId: "1:803501115688:web:a6aa109cc7610eebbf681d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* NAVIGATION */
+window.openForm = function () {
+  page1.style.display = "none";
+  page2.style.display = "block";
+};
+
+window.backHome = function () {
+  page3.style.display = "none";
+  page1.style.display = "block";
+};
+
+/* INSCRIPTION */
+window.inscrire = async function () {
+
+await addDoc(collection(db, "etudiants"), {
+nom: nom.value,
+postnom: postnom.value,
+prenom: prenom.value,
+telephone: telephone.value,
+email: email.value,
+adresse: adresse.value,
+filiere: filiere.value,
+niveau: niveau.value,
+date: new Date()
+});
+
+/* page 3 */
+page2.style.display = "none";
+page3.style.display = "block";
+
+};
+
+/* ADMIN */
+window.openAdmin = async function () {
+
+document.getElementById("adminPage").style.display = "block";
+
+const q = await getDocs(collection(db, "etudiants"));
+
+let html = "";
+
+q.forEach(doc => {
+let d = doc.data();
+
+html += `
+<div style="background:#eee; margin:10px; padding:10px;">
+Nom: ${d.nom}<br>
+Postnom: ${d.postnom}<br>
+Prénom: ${d.prenom}<br>
+Téléphone: ${d.telephone}<br>
+Email: ${d.email}
+</div>`;
+});
+
+document.getElementById("liste").innerHTML = html;
+
+};
+
+window.closeAdmin = function () {
+document.getElementById("adminPage").style.display = "none";
+};
+
+</script>
+
+</body>
+</html>
